@@ -5,12 +5,14 @@
 module Main where
 
 import qualified Cign as Cign
+import qualified Cli as Cli
 import Data.Text.Lazy
 import Data.Text.Lazy.Encoding
 import GI.Gdk.Enums
 import qualified GI.Gtk as Gtk
 import GI.Gtk.Declarative
 import GI.Gtk.Declarative.App.Simple
+import Options.Applicative
 import System.Exit
 import System.Process.Typed
 
@@ -20,12 +22,16 @@ data Event = Closed | Refresh [Char]
 
 main :: IO ()
 main = do
-  let p = Cign.runCign
-  (code, out, _err) <- readProcess p
+  Cli.CignGtkOpts extraArgs <- execParser Cli.opts
+  let p = Cign.runCign extraArgs
+  (code, out, err) <- readProcess p
   case code of
     ExitFailure _ -> do
       buf <- Gtk.new Gtk.TextBuffer []
-      Gtk.setTextBufferText buf $ toStrict $ decodeUtf8 out
+      Gtk.setTextBufferText buf $
+        toStrict $
+          decodeUtf8 $
+            "Standard out:\n" <> out <> "\nStandard err:\n" <> err
       _ <-
         run
           App

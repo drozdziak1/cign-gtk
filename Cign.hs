@@ -12,5 +12,5 @@ data CignReport = CignReport
     output :: [Char]
   }
 
-runCign :: ProcessConfig () Handle ()
-runCign = setStdout createPipe $ shell "cign" 
+runCign :: String -> ProcessConfig () Handle Handle 
+runCign extraArgs = setStdout createPipe $ setStderr createPipe $ shell $ "cign" <> " " <> extraArgs
