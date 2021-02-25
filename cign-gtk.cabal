@@ -20,11 +20,12 @@ executable cign-gtk
   other-modules:       Cign
   -- other-extensions:
   build-depends:       base >= 4.14 && < 4.15
+                     , gi-gdk >= 3.0.23
                      , gi-gtk
                      , gi-gtk-declarative
                      , gi-gtk-declarative-app-simple
-                     , typed-process
                      , text
+                     , typed-process
                      , vector
   -- hs-source-dirs:
   default-language:    Haskell2010

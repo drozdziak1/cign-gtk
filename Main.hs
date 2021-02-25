@@ -5,47 +5,53 @@
 module Main where
 
 import qualified Cign as Cign
-import Control.Exception
-import Control.Monad
-import Control.Monad.IO.Class
+import Data.Text.Lazy
+import Data.Text.Lazy.Encoding
+import GI.Gdk.Enums
 import qualified GI.Gtk as Gtk
 import GI.Gtk.Declarative
 import GI.Gtk.Declarative.App.Simple
-import System.IO
+import System.Exit
 import System.Process.Typed
 
-type State = ()
+data State = State {stateBuffer :: Gtk.TextBuffer}
 
-data Event = Closed
+data Event = Closed | Refresh [Char]
 
 main :: IO ()
 main = do
   let p = Cign.runCign
-  s <- withProcessWait_ p $ \p -> do
-    out <- hGetContents $ getStdout p
-    evaluate $ length out -- lazy I/O
-    return out
-  putStrLn $ "Cign output:\n" <> s
-  run
-    App
-      { view = view',
-        update = update',
-        inputs = [],
-        initialState = ()
-      }
+  (code, out, _err) <- readProcess p
+  case code of
+    ExitFailure _ -> do
+      buf <- Gtk.new Gtk.TextBuffer []
+      Gtk.setTextBufferText buf $ toStrict $ decodeUtf8 out
+      _ <-
+        run
+          App
+            { view = view',
+              update = update',
+              inputs = [],
+              initialState = State {stateBuffer = buf}
+            }
+      exitWith code
+    _ -> pure ()
 
 view' :: State -> AppView Gtk.Window Event
-view' _ =
+view' state =
   bin
     Gtk.Window
-    [ #title := "Demo",
+    [ #title := "Cign",
       on
         #deleteEvent
         ( const
             (True, Closed)
-        )
+        ),
+      #typeHint := WindowTypeHintDialog
     ]
-    $ widget Gtk.Label [#label := "Hello, World"]
+    $ widget Gtk.TextView [#editable := False, #buffer := stateBuffer state]
 
 update' :: State -> Event -> Transition State Event
-update' _ Closed = Exit
+update' state e = case e of
+  Closed -> Exit
+  Refresh _b -> Transition state $ (return Nothing)
