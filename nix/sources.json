@@ -11,16 +11,28 @@
         "url": "https://github.com/drozdziak1/cign/archive/52fcfcfaab84a0f1cbc834e99383241e1de2f400.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
+    "gitignore-nix": {
+        "branch": "master",
+        "description": "A nix expression that filters source based on a .gitignore file.",
+        "homepage": "",
+        "owner": "hercules-ci",
+        "repo": "gitignore.nix",
+        "rev": "211907489e9f198594c0eb0ca9256a1949c9d412",
+        "sha256": "06j7wpvj54khw0z10fjyi31kpafkr6hi1k0di13k1xp8kywvfyx8",
+        "type": "tarball",
+        "url": "https://github.com/hercules-ci/gitignore.nix/archive/211907489e9f198594c0eb0ca9256a1949c9d412.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
     "haskell-nix": {
         "branch": "master",
         "description": "Alternative Haskell Infrastructure for Nixpkgs",
         "homepage": "https://input-output-hk.github.io/haskell.nix",
         "owner": "input-output-hk",
         "repo": "haskell.nix",
-        "rev": "583acc2219f4183dcb601688f82e21eadd5cce5b",
-        "sha256": "0pzpk7l9hm1al6cnv9rvy762n76xcjn7n9dpyhlfrrw7g6s97grn",
+        "rev": "5c25ce919f15f6244a08d5f00c22829d34e45e84",
+        "sha256": "1f7k59z5bh32mdz5qh429r25hgs6aqs8isp1s4frmlxpjm131v2g",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/haskell.nix/archive/583acc2219f4183dcb601688f82e21eadd5cce5b.tar.gz",
+        "url": "https://github.com/input-output-hk/haskell.nix/archive/5c25ce919f15f6244a08d5f00c22829d34e45e84.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "niv": {
@@ -41,10 +53,10 @@
         "homepage": "",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "502e871b550dad61766a42a95282c5248d5de786",
-        "sha256": "0z06cidvw7msavzzx7d9pmq8r325g65fyjq7v8n1y1p53sfbyxsm",
+        "rev": "d284abb4df2ed8903cc8133de89cc327fb42b50b",
+        "sha256": "0hpdx2lc6cs5yl7qa1w55g4w1d492ga9xm0qsn42r2lm89d628ym",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/502e871b550dad61766a42a95282c5248d5de786.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/d284abb4df2ed8903cc8133de89cc327fb42b50b.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nixpkgs-unstable": {
@@ -53,10 +65,10 @@
         "homepage": "",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "04ac9dcd311956d1756d77f4baf9258392ee7bdd",
-        "sha256": "10r7s2bimvijq1znhiypc99zvzzfqilzyzzg62q5xk2cr4gs03g9",
+        "rev": "5df05c902cde398e056eb6271d5fe13e418db4c6",
+        "sha256": "12plc7k251z1dmmrd29lyrpw0xmjvmf79yj568aapzrcki5mrw74",
         "type": "tarball",
-        "url": "https://github.com/NixOS/nixpkgs/archive/04ac9dcd311956d1756d77f4baf9258392ee7bdd.tar.gz",
+        "url": "https://github.com/NixOS/nixpkgs/archive/5df05c902cde398e056eb6271d5fe13e418db4c6.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
