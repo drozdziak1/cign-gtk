@@ -5,10 +5,10 @@
   # import nixpkgs with overlays
 , pkgs ? import nixpkgsSrc nixpkgsArgs
 , gitignoreSource ? (import sources.gitignore-nix {}).gitignoreSource
-}: pkgs.haskell-nix.project {
+}: (pkgs.haskell-nix.project {
   # 'cleanGit' cleans a source directory based on the files known by git
   src = pkgs.haskell-nix.haskellLib.cleanGit {
     name = "cign-gtk";
     src = gitignoreSource ./.;
   };
-}
+}).cign-gtk.components.exes.cign-gtk
