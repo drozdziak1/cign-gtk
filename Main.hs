@@ -9,7 +9,9 @@ import qualified Cli as Cli
 import qualified Data.ByteString.Lazy as BS
 import qualified Data.Text.Lazy as TXT
 import Data.Text.Lazy.Encoding
+import GI.Gdk.Constants
 import GI.Gdk.Enums
+import GI.Gdk.Structs
 import qualified GI.Gtk as Gtk
 import GI.Gtk.Declarative
 import GI.Gtk.Declarative.App.Simple
@@ -19,7 +21,7 @@ import System.Process.Typed
 
 data State = State {stateBuffer :: Gtk.TextBuffer, exitCode :: ExitCode, stateExtraArgs :: String}
 
-data Event = Closed | Check | Ignore
+data Event = Close | Check | Ignore | KeyPressed EventKey
 
 main :: IO ()
 main = do
@@ -49,8 +51,9 @@ view' state =
       on
         #deleteEvent
         ( const
-            (True, Closed)
+            (True, Close)
         ),
+      on #keyPressEvent (\ek -> (True, KeyPressed ek)),
       #typeHint := WindowTypeHintDialog -- Make sure this floats on tiling WMs
     ]
     $ container Gtk.Box [#spacing := 10] $
@@ -62,24 +65,31 @@ view' state =
         container Gtk.Box [#orientation := Gtk.OrientationVertical] $
           [ widget
               Gtk.Button
-              [ #label := (TXT.toStrict $ TXT.pack "Ignore"),
+              [ #label := (TXT.toStrict $ TXT.pack "Ignore (I)"),
                 on
                   #clicked
                   Ignore
               ],
             widget
               Gtk.Button
-              [ #label := (TXT.toStrict $ TXT.pack "Check"),
+              [ #label := (TXT.toStrict $ TXT.pack "Check (C)"),
                 on
                   #clicked
                   Check
+              ],
+            widget
+              Gtk.Button
+              [ #label := (TXT.toStrict $ TXT.pack "Exit (X)"),
+                on
+                  #clicked
+                  Close
               ]
           ]
       ]
 
 update' :: State -> Event -> Transition State Event
 update' state e = case e of
-  Closed -> Exit
+  Close -> Exit
   Check -> Transition state $ newEvent
     where
       newEvent = do
@@ -88,7 +98,24 @@ update' state e = case e of
         let txt = mkBufferText out err
         Gtk.setTextBufferText (stateBuffer state) $ TXT.toStrict txt
         return Nothing
-  Ignore -> Transition state {exitCode = ExitSuccess} $ pure $ Just Closed
+  Ignore -> Transition state {exitCode = ExitSuccess} $ pure $ Just Close
+  KeyPressed ek -> Transition state newEvent
+    where
+      newEvent = do
+        kv <- Gtk.get ek #keyval
+        case kv of
+          KEY_i -> do
+            putStrLn "Got I"
+            return $ Just Ignore
+          KEY_c -> do
+            putStrLn "Got C"
+            return $ Just Check
+          KEY_x -> do
+            putStrLn "Got X"
+            return $ Just Close
+          other -> do
+            putStrLn $ "Got unknown EventKey, keyval is " <> show other
+            return Nothing
 
 mkBufferText :: BS.ByteString -> BS.ByteString -> TXT.Text
 mkBufferText out err =
