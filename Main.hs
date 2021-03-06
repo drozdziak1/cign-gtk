@@ -79,7 +79,7 @@ view' state =
               ],
             widget
               Gtk.Button
-              [ #label := (TXT.toStrict $ TXT.pack "Exit (X)"),
+              [ #label := (TXT.toStrict $ TXT.pack "Quit (Q, Esc)"),
                 on
                   #clicked
                   Close
@@ -110,8 +110,11 @@ update' state e = case e of
           KEY_c -> do
             putStrLn "Got C"
             return $ Just Check
-          KEY_x -> do
-            putStrLn "Got X"
+          KEY_q -> do
+            putStrLn "Got Q"
+            return $ Just Close
+          KEY_Escape -> do
+            putStrLn "Got Escape"
             return $ Just Close
           other -> do
             putStrLn $ "Got unknown EventKey, keyval is " <> show other
