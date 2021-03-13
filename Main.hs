@@ -7,8 +7,8 @@ module Main where
 import qualified Cign as Cign
 import qualified Cli as Cli
 import qualified Data.ByteString.Lazy as BS
-import qualified Data.Text.Lazy as LTXT
 import qualified Data.Text as TXT
+import qualified Data.Text.Lazy as LTXT
 import Data.Text.Lazy.Encoding
 import GI.Gdk.Constants
 import GI.Gdk.Enums
@@ -28,7 +28,7 @@ data State = State
     stateSuccessCmd :: String
   }
 
-data Event = Close | Check | Ignore | KeyPressed EventKey
+data Event = Close | Check | Ignore | KeyPressed EventKey | NewExitCode ExitCode
 
 main :: IO ()
 main = do
@@ -36,7 +36,7 @@ main = do
   let p = Cign.runCign extraArgs
   (code, out, err) <- readProcess p
   buf <- Gtk.new Gtk.TextBuffer []
-  Gtk.setTextBufferText buf $ LTXT.toStrict $ mkBufferText out err
+  Gtk.setTextBufferText buf $ mkBufferText out err
   finalState <-
     run
       App
@@ -72,11 +72,11 @@ view' state =
   bin
     Gtk.Window
     [ #title
-        := ( "Cign" <> 
-                 ( case stateSuccessCmd state of
-                     "" -> TXT.pack $ ""
-                     cmd -> TXT.pack $ " - Success command: " <> cmd
-                 )
+        := ( "Cign"
+               <> ( case stateSuccessCmd state of
+                      "" -> TXT.pack $ ""
+                      cmd -> TXT.pack $ " - Success command: " <> cmd
+                  )
            ),
       on
         #deleteEvent
@@ -123,11 +123,11 @@ update' state e = case e of
   Check -> Transition state $ newEvent
     where
       newEvent = do
-        (_code, out, err) <- readProcess $ Cign.runCign $ stateExtraArgs state
-
-        let txt = mkBufferText out err
-        Gtk.setTextBufferText (stateBuffer state) $ LTXT.toStrict txt
-        return Nothing
+        (code, out, err) <- readProcess $ Cign.runCign $ stateExtraArgs state
+        Gtk.setTextBufferText (stateBuffer state) $ mkBufferText out err
+        case code of
+          ExitFailure _ -> return $ Just $ NewExitCode code
+          _ -> return Nothing
   Ignore -> Transition state {exitCode = ExitSuccess} $ pure $ Just Close
   KeyPressed ek -> Transition state newEvent
     where
@@ -149,7 +149,11 @@ update' state e = case e of
           other -> do
             hPutStrLn stderr $ "Got unknown EventKey, keyval is " <> show other
             return Nothing
+  NewExitCode code -> Transition state {exitCode = code} $ return Nothing
 
-mkBufferText :: BS.ByteString -> BS.ByteString -> LTXT.Text
+mkBufferText :: BS.ByteString -> BS.ByteString -> TXT.Text
 mkBufferText out err =
-  "Standard out:\n" <> decodeUtf8 out <> "\nStandard err:\n" <> decodeUtf8 err
+  "Standard out:\n"
+    <> LTXT.toStrict (decodeUtf8 out)
+      <> "\nStandard err:\n"
+      <> LTXT.toStrict (decodeUtf8 err)
