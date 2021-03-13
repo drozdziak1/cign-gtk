@@ -3,7 +3,8 @@ module Cli where
 import Options.Applicative
 
 data CignGtkOpts = CignGtkOpts
-  { extraCignArgs :: String
+  { extraCignArgs :: String,
+    successCommand :: String
   }
   deriving (Show)
 
@@ -15,6 +16,13 @@ cliParser =
           <> metavar "EXTRA_CIGN_ARGS"
           <> value ""
           <> help "Extra args to pass to cign"
+      )
+    <*> strOption
+      ( long "exec"
+          <> short 'x'
+          <> metavar "COMMAND"
+          <> value ""
+          <> help "A command to execute when cign output is clean or ignored"
       )
 
 opts :: ParserInfo CignGtkOpts
