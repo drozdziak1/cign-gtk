@@ -28,7 +28,13 @@ data State = State
     stateSuccessCmd :: String
   }
 
-data Event = Close | Check | Ignore | KeyPressed EventKey | NewExitCode ExitCode
+data Event
+  = Cancel
+  | Check
+  | Continue
+  | Ignore
+  | KeyPressed EventKey
+  | NewExitCode ExitCode
 
 main :: IO ()
 main = do
@@ -81,7 +87,7 @@ view' state =
       on
         #deleteEvent
         ( const
-            (True, Close)
+            (True, Cancel)
         ),
       on #keyPressEvent (\ek -> (True, KeyPressed ek)),
       #typeHint := WindowTypeHintDialog -- Make sure this floats on tiling WMs
@@ -95,40 +101,58 @@ view' state =
         container Gtk.Box [#orientation := Gtk.OrientationVertical] $
           [ widget
               Gtk.Button
-              [ #label := (LTXT.toStrict $ LTXT.pack "Ignore (I)"),
-                on
-                  #clicked
-                  Ignore
-              ],
-            widget
-              Gtk.Button
-              [ #label := (LTXT.toStrict $ LTXT.pack "Check (C)"),
+              [ #label := (TXT.pack "Cancel"),
+                #tooltipText
+                  := TXT.pack
+                    "Cancel (Esc, Q) - Exit with code 1, skip the success comand",
                 on
                   #clicked
                   Check
               ],
             widget
               Gtk.Button
-              [ #label := (LTXT.toStrict $ LTXT.pack "Close (Q, Esc)"),
+              [ #label := (TXT.pack "Check"),
+                #tooltipText
+                  := TXT.pack
+                    "Check (C) - rerun cign with the supplied extra args (if present), update exitcode returned on exit",
                 on
                   #clicked
-                  Close
+                  Check
+              ],
+            widget
+              Gtk.Button
+              [ #label := (TXT.pack "Continue"),
+                #tooltipText
+                  := TXT.pack
+                    "Continue (Space) - execute the success command (if present) and exit with its code or exit with cign's current exit code",
+                on
+                  #clicked
+                  Continue
+              ],
+            widget
+              Gtk.Button
+              [ #label := TXT.pack "Ignore",
+                #tooltipText
+                  := TXT.pack
+                    "Ignore (I) - disregard cign state, execute the success command (if present) and exit with 0",
+                on
+                  #clicked
+                  Ignore
               ]
           ]
       ]
 
 update' :: State -> Event -> Transition State Event
 update' state e = case e of
-  Close -> Exit
+  Cancel -> Transition state {exitCode = ExitFailure 1} $ pure $ Just Continue
+  Continue -> Exit
   Check -> Transition state $ newEvent
     where
       newEvent = do
         (code, out, err) <- readProcess $ Cign.runCign $ stateExtraArgs state
         Gtk.setTextBufferText (stateBuffer state) $ mkBufferText out err
-        case code of
-          ExitFailure _ -> return $ Just $ NewExitCode code
-          _ -> return Nothing
-  Ignore -> Transition state {exitCode = ExitSuccess} $ pure $ Just Close
+        return $ Just $ NewExitCode code
+  Ignore -> Transition state {exitCode = ExitSuccess} $ pure $ Just Continue
   KeyPressed ek -> Transition state newEvent
     where
       newEvent = do
@@ -140,12 +164,13 @@ update' state e = case e of
           KEY_c -> do
             hPutStrLn stderr "Got C"
             return $ Just Check
-          KEY_q -> do
-            hPutStrLn stderr "Got Q"
-            return $ Just Close
-          KEY_Escape -> do
-            hPutStrLn stderr "Got Escape"
-            return $ Just Close
+          KEY_space -> do
+            hPutStrLn stderr "Got Space"
+            return $ Just Continue
+          cancel_key
+            | cancel_key == KEY_q || cancel_key == KEY_Escape -> do
+              hPutStrLn stderr "Got Q or Esc"
+              return $ Just Cancel
           other -> do
             hPutStrLn stderr $ "Got unknown EventKey, keyval is " <> show other
             return Nothing
@@ -155,5 +180,5 @@ mkBufferText :: BS.ByteString -> BS.ByteString -> TXT.Text
 mkBufferText out err =
   "Standard out:\n"
     <> LTXT.toStrict (decodeUtf8 out)
-      <> "\nStandard err:\n"
-      <> LTXT.toStrict (decodeUtf8 err)
+    <> "\nStandard err:\n"
+    <> LTXT.toStrict (decodeUtf8 err)
