@@ -95,8 +95,9 @@ view' state =
     $ container Gtk.Box [#spacing := 10] $
       [ widget
           Gtk.TextView
-          [ #editable := False,
-            #buffer := stateBuffer state
+          [ #buffer := stateBuffer state,
+            #editable := False,
+            #monospace := True
           ],
         container Gtk.Box [#orientation := Gtk.OrientationVertical] $
           [ widget
